@@ -1,0 +1,28 @@
+CREATE TABLE Domain
+(
+	dominio varchar(100),
+	primary key(dominio)
+);
+
+CREATE TABLE Theme
+(
+	tema varchar(100),
+	primary key(tema)
+);
+
+CREATE TABLE Question
+(
+	id_questao SERIAL NOT NULL,
+	texto varchar(300),
+	resposta varchar(300),
+	dominio varchar(100),
+	tema varchar(100),
+	
+	primary key(id_questao),
+	foreign key(dominio) REFERENCES Domain(Dominio),
+	foreign key(tema) REFERENCES Theme(tema)
+)
+
+INSERT INTO QUESTION VALUES(DEFAULT,'Qual a funcao da mitocondria?','Fazer a respiracao celular','Biologia','Organelas Celulares');
+INSERT INTO Domain VALUES('Biologia');
+INSERT INTO Theme VALUES('Organelas Celulares');
