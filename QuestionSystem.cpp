@@ -159,7 +159,7 @@ unsigned char menu(char* menu)
 void telaCadastro(PGconn *conn)
 {	
 	system("cls");
-	gotoxy(5,23);
+	gotoxy(5,22);
 	printf(CIANO"\t==============================="CINZA);
 	gotoxy(5,1);
 	printf(CIANO"\t===== CADASTRO DE QUESTÕES ====="CINZA);
@@ -178,7 +178,7 @@ void telaCadastro(PGconn *conn)
 	cadastrarTema(conn);
 	cadastrarQuestao(conn);
     printf("\n\t");
-	Sleep(1200);	
+	Sleep(1700);	
 }
 
 // prepara a query e insire o tema anteriormente digitado no banco de dados, 
@@ -199,7 +199,7 @@ void cadastrarTema(PGconn *conn)
 		case PGRES_TUPLES_OK:  break;
 		case PGRES_BAD_RESPONSE: printf(VERMELHO"\t[ERROR] Bad Response\n"CINZA); system("pause"); break;
 		case PGRES_NONFATAL_ERROR: 
-		case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
+		case PGRES_FATAL_ERROR: break;
 		default: printf(VERMELHO"\tUnexpected Response\n"CINZA); system("pause");
 	}	
     PQclear(res);
@@ -223,7 +223,7 @@ void cadastrarDominio(PGconn *conn)
 		case PGRES_TUPLES_OK:  break;
 		case PGRES_BAD_RESPONSE: printf(VERMELHO"\t[ERROR] Bad Response\n"CINZA); system("pause"); break;
 		case PGRES_NONFATAL_ERROR: 
-		case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
+		case PGRES_FATAL_ERROR: break;
 		default: printf(VERMELHO"\tUnexpected Response\n"CINZA); system("pause");
 	}	
     PQclear(res);
@@ -255,7 +255,6 @@ void cadastrarQuestao(PGconn *conn)
 	strcat(query,")");
 	PGresult *res = PQexec(conn, query);
 		/* handle the response */
-	printf("\n");	
 	switch (PQresultStatus(res)) 
 	{
 		case PGRES_EMPTY_QUERY: 
