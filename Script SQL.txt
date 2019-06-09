@@ -17,12 +17,14 @@ CREATE TABLE Question
 	resposta varchar(300),
 	dominio varchar(100),
 	tema varchar(100),
+	dificuldade integer,
 	
 	primary key(id_questao),
 	foreign key(dominio) REFERENCES Domain(Dominio),
 	foreign key(tema) REFERENCES Theme(tema)
 )
 
-INSERT INTO QUESTION VALUES(DEFAULT,'Qual a funcao da mitocondria?','Fazer a respiracao celular','Biologia','Organelas Celulares');
+
+INSERT INTO QUESTION VALUES(DEFAULT,'Qual a funcao da mitocondria?','Fazer a respiracao celular','Biologia','Organelas Celulares',4);
 INSERT INTO Domain VALUES('Biologia');
 INSERT INTO Theme VALUES('Organelas Celulares');
