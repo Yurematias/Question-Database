@@ -27,12 +27,7 @@ void cadastrarTema(PGconn *conn);
 void mostrarOpcoes(unsigned char op);
 void telaCadastro(PGconn *conn);
 
-static void exit_nicely(PGconn *conn)
-{
-    PQfinish(conn);
-    system("pause");
-    exit(1);
-}
+static void exit_nicely(PGconn *conn);
 
 int main()
 {
@@ -43,7 +38,7 @@ int main()
 	int nFields;
     int i, j;
 	
-	/* Make a connection to the database */
+	/* Faz conexao com o banco */
     conn = PQconnectdb(conninfo);
     
     /* Check to see that the backend connection was successfully made */
@@ -53,8 +48,10 @@ int main()
         exit_nicely(conn);
     }
 	    
-	setlocale(LC_ALL, "Portuguese");
+	setlocale(LC_ALL, "Portuguese");	// deixar com acentuacao eh bom neh
 	system("color 0F");
+	char varBusca[100];		// variavel a ser usada nas consultas para guardar a palavra, tema, ou seja la o que for
+	char queryBusca[400];	// string para busca ira guardar o SELECT FROM BLABLABLA...
 	unsigned char op, opBusca;
 	do
 	{
@@ -62,10 +59,75 @@ int main()
 		switch(op)
 		{
 			case 1:
-				telaCadastro(conn);
+				telaCadastro(conn);	           // mostrar a tela de cadastro 
 				break;
 			case 2:
-				opBusca = menu("busca");
+				// Variavel controladora do switch de busca, (opBusca  ---> opcao do menu busca 
+				system("cls");
+				opBusca = menu("busca");  
+				system("cls");
+				switch(opBusca)
+				{
+					case 1:
+						printf("\tDigite a palavra a ser buscada: ");
+						strcpy(queryBusca,"SELECT * FROM QUESTION WHERE texto LIKE '%");
+						break;
+					case 2:
+						printf("\tDigite o tema a ser buscado: ");
+						strcpy(queryBusca,"SELECT * FROM QUESTION WHERE tema LIKE '");
+						break;
+					case 3:
+						printf("\tDigite o dominio a ser buscado: ");
+						strcpy(queryBusca,"SELECT * FROM QUESTION WHERE dominio LIKE '");
+						break;
+					case 4:
+						printf("\tDigite a dificuldade a ser buscada: ");
+						// pra nao criar outra variavel usei a posicao 0 do vetor varBusca
+						// lembre-se que o tipo char tambem suporta numeros inteiros 
+						scanf("%d",&varBusca[0]);							
+						sprintf(queryBusca,"SELECT * FROM QUESTION WHERE dificuldade = %d",varBusca[0]);
+						
+					// nao precisa de case 5: 
+					// se for 5 ja volta ao menu anterior.	
+				}
+				if(opBusca == 5)
+					break;
+				else if(opBusca < 4)	
+				{
+					setbuf(stdin,NULL);
+					gets(varBusca);					
+					strcat(queryBusca, varBusca);
+					if(opBusca == 1)
+						strcat(queryBusca, "%'");
+					else	
+						strcat(queryBusca, "'");
+				}
+				system("cls");
+				res = PQexec(conn,queryBusca);
+				
+				switch (PQresultStatus(res)) 
+				{
+					case PGRES_COMMAND_OK: printf("ok\n"); break;
+					case PGRES_EMPTY_QUERY: printf("empty"); break;
+					case PGRES_TUPLES_OK: 
+						nFields = PQnfields(res);
+						printf(CIANO"\t%d Resultados encontrados com '%s'\n\n"CINZA,PQntuples(res),varBusca);
+					    for (i = 0; i < PQntuples(res); i++)
+					    {
+					        printf("\t%s", PQgetvalue(res, i, 1));
+					    	printf("\n");
+					    }	
+					    
+						break;
+					case PGRES_BAD_RESPONSE: printf("error: bad response"); break;
+					case PGRES_NONFATAL_ERROR: 
+					case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
+					default: printf("Algo inesperado");
+				}
+				printf("\n\n\t");
+				getch();			// system("cls") que nao aparece nada na tela
+				setbuf(stdin,NULL);
+			    PQclear(res);				
 				break;
 			case 3:
 				PQexec(conn, "DELETE FROM QUESTION");	
@@ -165,13 +227,13 @@ void telaCadastro(PGconn *conn)
 	printf(CIANO"\t===== CADASTRO DE QUESTÕES ====="CINZA);
 	printf(AMARELO"\n\n\tEscreva a questão:\n\n\t"CINZA);
 	setbuf(stdin,NULL);
-	fgets(questoes.texto,300,stdin);
+	gets(questoes.texto);
 	printf(AMARELO"\n\tEscreva a resposta da questão:\n\n\t"CINZA);
-	fgets(questoes.resposta,300,stdin);
+	gets(questoes.resposta);
 	printf(AMARELO"\n\tInsira o dominio da questão:\n\n\t"CINZA);
-	fgets(questoes.dominio,50,stdin);
+	gets(questoes.dominio);
 	printf(AMARELO"\n\tInsira o tema da questão:\n\n\t"CINZA);
-	fgets(questoes.tema,50,stdin);
+	gets(questoes.tema);
 	printf(AMARELO"\n\tInsira a dificuldade da questão:\n\n\t"CINZA);
 	scanf("%d",&questoes.dificulade);
 	cadastrarDominio(conn);
@@ -186,12 +248,9 @@ void telaCadastro(PGconn *conn)
 void cadastrarTema(PGconn *conn)
 {
 	char query[500];
-	strcpy(query,"INSERT INTO Theme VALUES('");
-	strcat(query,questoes.tema);
-	strcat(query,"')");
+	sprintf(query, "INSERT INTO THEME VALUES('%s');",questoes.tema);
 	PGresult *res = PQexec(conn, query);
-		/* handle the response */
-	printf("\n");	
+	/* handle the response */	
 	switch (PQresultStatus(res)) 
 	{
 		case PGRES_EMPTY_QUERY: 
@@ -210,12 +269,9 @@ void cadastrarTema(PGconn *conn)
 void cadastrarDominio(PGconn *conn)
 {
 	char query[500];
-	strcpy(query,"INSERT INTO Domain VALUES('");
-	strcat(query,questoes.dominio);
-	strcat(query,"')");
+	sprintf(query, "INSERT INTO DOMAIN VALUES('%s');",questoes.dominio);
 	PGresult *res = PQexec(conn, query);
-		/* handle the response */
-	printf("\n");	
+	/* handle the response */	
 	switch (PQresultStatus(res)) 
 	{
 		case PGRES_EMPTY_QUERY: 
@@ -234,31 +290,15 @@ void cadastrarDominio(PGconn *conn)
 void cadastrarQuestao(PGconn *conn)
 { 
 	char query[500];
-	strcpy(query,"INSERT INTO Question VALUES(");
-	strcat(query, "DEFAULT,'");		    	// colocar DEFAULT para ocorrer o auto-incremento no banco 
-	strcat(query,questoes.texto);
-	strcat(query,"','");
-	strcat(query,questoes.resposta);
-	strcat(query,"','");
-	strcat(query,questoes.dominio);
-	strcat(query,"','");
-	strcat(query,questoes.tema);
-	strcat(query,"',");
 	
-	// eh necessario converter a dificuldade para char 
-	// para que o valor seja colocado na string
-	char dificulty[15];
-	sprintf(dificulty, "%d", questoes.dificulade);
-	// fim da conversao
-	
-	strcat(query,dificulty);
-	strcat(query,")");
+	sprintf(query,"INSERT INTO QUESTION VALUES(DEFAULT,'%s','%s','%s','%s',%d);",
+	questoes.texto, questoes.resposta, questoes.dominio, questoes.tema, questoes.dificulade);
 	PGresult *res = PQexec(conn, query);
 		/* handle the response */
 	switch (PQresultStatus(res)) 
 	{
 		case PGRES_EMPTY_QUERY: 
-		case PGRES_COMMAND_OK: printf(CIANO"\tCadastro realizado com sucesso...\n"CINZA); break;
+		case PGRES_COMMAND_OK: printf(CIANO"\n\n\tCadastro realizado com sucesso...\n"CINZA); break;
 		case PGRES_TUPLES_OK:  break;
 		case PGRES_BAD_RESPONSE: printf(VERMELHO"\t[ERROR] Bad Response\n"CINZA); system("pause"); break;
 		case PGRES_NONFATAL_ERROR: 
@@ -273,3 +313,11 @@ void gotoxy(int x, int y)
 {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),(COORD){x-1,y-1});
 }
+
+static void exit_nicely(PGconn *conn)
+{
+    PQfinish(conn);
+    system("pause");
+    exit(1);
+}
+
