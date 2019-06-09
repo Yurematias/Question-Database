@@ -68,10 +68,13 @@ int main()
 				opBusca = menu("busca");
 				break;
 			case 3:
+				PQexec(conn, "DELETE FROM QUESTION");	
+				break;
+			case 4:
 				system("cls");
 				printf("Programa finalizado");			
 		}
-	}while(op != 3);
+	}while(op != 4);
 	return 0;
 }
 
@@ -79,20 +82,21 @@ int main()
 void menuPrincipal(unsigned char op)
 {
 	printf(CIANO"\t========= SISTEMA DE QUESTÕES ========="CINZA);
-	(op == 1) ? printf(PRETO FUNDOBRANCO"\n\n\t Cadastrar Questões "CINZA FUNDOPRETO" <==") : printf("\n\n\t Cadastrar Questões");
-	(op == 2) ? printf(PRETO FUNDOBRANCO"\n\n\t Buscar Questões "CINZA FUNDOPRETO" <==") : printf("\n\n\t Buscar Questões");
-	(op == 3) ? printf(""PRETO FUNDOBRANCO"\n\n\t Sair "CINZA FUNDOPRETO " <==\n\n") : printf("\n\n\t Sair\n\n");
+	printf("%s",(op == 1) ? PRETO FUNDOBRANCO "\n\n\t Cadastrar Questões "CINZA FUNDOPRETO" <==" : "\n\n\t Cadastrar Questões");
+	printf("%s",(op == 2) ? PRETO FUNDOBRANCO "\n\n\t Buscar Questões "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar Questões");
+	printf("%s",(op == 3) ? PRETO FUNDOBRANCO "\n\n\t Apagar Registros "CINZA FUNDOPRETO" <==" : "\n\n\t Apagar Registros");
+	printf("%s",(op == 4) ? PRETO FUNDOBRANCO "\n\n\t Sair "CINZA FUNDOPRETO " <==\n\n" : "\n\n\t Sair\n\n");
 	printf(CIANO"\t=======================================\n"CINZA);
 }
 // funcao que mostra as opcoes do menu de busca
 void menuBusca(unsigned char op)
 {
 	printf(CIANO"\t========= BUSCA DE QUESTÕES ========="CINZA);
-	(op == 1) ? printf(PRETO FUNDOBRANCO"\n\n\t Buscar por palavra "CINZA FUNDOPRETO" <==") : printf("\n\n\t Buscar por palavra");
-	(op == 2) ? printf(PRETO FUNDOBRANCO"\n\n\t Buscar por tema "CINZA FUNDOPRETO" <==") : printf("\n\n\t Buscar por tema");
-	(op == 3) ? printf(""PRETO FUNDOBRANCO"\n\n\t Buscar por domínio "CINZA FUNDOPRETO " <==") : printf("\n\n\t Buscar por domínio");
-	(op == 4) ? printf(PRETO FUNDOBRANCO"\n\n\t Buscar por dificuldade "CINZA FUNDOPRETO" <==") : printf("\n\n\t Buscar por dificuldade");
-	(op == 5) ? printf(PRETO FUNDOBRANCO"\n\n\t Voltar "CINZA FUNDOPRETO" <==") : printf("\n\n\t Voltar");
+	printf("%s",(op == 1) ? PRETO FUNDOBRANCO"\n\n\t Buscar por palavra "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar por palavra");
+	printf("%s",(op == 2) ? PRETO FUNDOBRANCO"\n\n\t Buscar por tema "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar por tema");
+	printf("%s",(op == 3) ? PRETO FUNDOBRANCO"\n\n\t Buscar por domínio "CINZA FUNDOPRETO " <==" : "\n\n\t Buscar por domínio");
+	printf("%s",(op == 4) ? PRETO FUNDOBRANCO"\n\n\t Buscar por dificuldade "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar por dificuldade");
+	printf("%s",(op == 5) ? PRETO FUNDOBRANCO"\n\n\t Voltar "CINZA FUNDOPRETO" <==" : "\n\n\t Voltar");
  	printf(CIANO"\n\n\t=======================================\n"CINZA);
 }
 
@@ -108,7 +112,7 @@ unsigned char menu(char* menu)
 		if(strcmp("principal",menu) == 0)
 		{
 			menuPrincipal(op);
-			limite = 3;
+			limite = 4;
 		}
 		else
 		{
@@ -164,7 +168,7 @@ void telaCadastro(PGconn *conn)
 	fgets(questoes.texto,300,stdin);
 	printf(AMARELO"\n\tEscreva a resposta da questão:\n\n\t"CINZA);
 	fgets(questoes.resposta,300,stdin);
-	printf(AMARELO"\n\tInsira o dominio da questão\n\n\t"CINZA);
+	printf(AMARELO"\n\tInsira o dominio da questão:\n\n\t"CINZA);
 	fgets(questoes.dominio,50,stdin);
 	printf(AMARELO"\n\tInsira o tema da questão:\n\n\t"CINZA);
 	fgets(questoes.tema,50,stdin);
