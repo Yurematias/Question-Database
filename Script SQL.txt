@@ -24,7 +24,3 @@ CREATE TABLE Question
 	foreign key(tema) REFERENCES Theme(tema)
 )
 
-
-INSERT INTO QUESTION VALUES(DEFAULT,'Qual a funcao da mitocondria?','Fazer a respiracao celular','Biologia','Organelas Celulares',4);
-INSERT INTO Domain VALUES('Biologia');
-INSERT INTO Theme VALUES('Organelas Celulares');
