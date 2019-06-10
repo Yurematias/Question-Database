@@ -55,82 +55,119 @@ int main()
 	unsigned char op, opBusca;
 	do
 	{
-		op = menu("principal");
+		op = menu("principal");	 		// apresenta o menu principal e permite a escolha do usuario  
 		switch(op)
 		{
 			case 1:
 				telaCadastro(conn);	           // mostrar a tela de cadastro 
 				break;
 			case 2:
-				// Variavel controladora do switch de busca, (opBusca  ---> opcao do menu busca 
-				system("cls");
-				opBusca = menu("busca");  
-				system("cls");
-				switch(opBusca)
+				do
 				{
-					case 1:
-						printf("\tDigite a palavra a ser buscada: ");
-						strcpy(queryBusca,"SELECT * FROM QUESTION WHERE texto LIKE '%");
+					// Variavel controladora do switch de busca, (opBusca  ---> opcao do menu busca 
+					system("cls");
+					opBusca = menu("busca");	// apresenta o menu de busca, e permite a escolha do usuario   
+					if(opBusca == 6)	// se a opcao for 6 ja sai do switch e volta ao menu anterior 
 						break;
-					case 2:
-						printf("\tDigite o tema a ser buscado: ");
-						strcpy(queryBusca,"SELECT * FROM QUESTION WHERE tema LIKE '");
-						break;
-					case 3:
-						printf("\tDigite o dominio a ser buscado: ");
-						strcpy(queryBusca,"SELECT * FROM QUESTION WHERE dominio LIKE '");
-						break;
-					case 4:
-						printf("\tDigite a dificuldade a ser buscada: ");
-						// pra nao criar outra variavel usei a posicao 0 do vetor varBusca
-						// lembre-se que o tipo char tambem suporta numeros inteiros 
-						scanf("%d",&varBusca[0]);							
-						sprintf(queryBusca,"SELECT * FROM QUESTION WHERE dificuldade = %d",varBusca[0]);
+					system("cls");
+					switch(opBusca)
+					{
+						case 1:
+							printf("\tDigite a palavra a ser buscada: ");
+							strcpy(queryBusca,"SELECT * FROM QUESTION WHERE texto LIKE '%");
+							break;
+						case 2:
+							printf("\tDigite o tema a ser buscado: ");
+							strcpy(queryBusca,"SELECT * FROM QUESTION WHERE tema = '");
+							break;
+						case 3:
+							printf("\tDigite o dominio a ser buscado: ");
+							strcpy(queryBusca,"SELECT * FROM QUESTION WHERE dominio = '");
+							break;
+						case 4:
+							printf("\tDigite a dificuldade a ser buscada: ");
+							
+							// pra nao criar outra variavel usei a posicao 0 do vetor varBusca
+							// lembre-se que o tipo char tambem suporta numeros inteiros 
+							scanf("%d",&varBusca[0]);							
+							sprintf(queryBusca,"SELECT * FROM QUESTION WHERE dificuldade = %d",varBusca[0]);
+							break;
+						case 5:
+							strcpy(queryBusca,"SELECT * FROM QUESTION");
 						
-					// nao precisa de case 5: 
-					// se for 5 ja volta ao menu anterior.	
-				}
-				if(opBusca == 5)
-					break;
-				else if(opBusca < 4)	
-				{
-					setbuf(stdin,NULL);
-					gets(varBusca);					
-					strcat(queryBusca, varBusca);
-					if(opBusca == 1)
-						strcat(queryBusca, "%'");
-					else	
-						strcat(queryBusca, "'");
-				}
-				system("cls");
-				res = PQexec(conn,queryBusca);
-				
-				switch (PQresultStatus(res)) 
-				{
-					case PGRES_COMMAND_OK: printf("ok\n"); break;
-					case PGRES_EMPTY_QUERY: printf("empty"); break;
-					case PGRES_TUPLES_OK: 
-						nFields = PQnfields(res);
-						printf(CIANO"\t%d Resultados encontrados com '%s'\n\n"CINZA,PQntuples(res),varBusca);
-					    for (i = 0; i < PQntuples(res); i++)
-					    {
-					        printf("\t%s", PQgetvalue(res, i, 1));
-					    	printf("\n");
-					    }	
-					    
-						break;
-					case PGRES_BAD_RESPONSE: printf("error: bad response"); break;
-					case PGRES_NONFATAL_ERROR: 
-					case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
-					default: printf("Algo inesperado");
-				}
-				printf("\n\n\t");
-				getch();			// system("cls") que nao aparece nada na tela
-				setbuf(stdin,NULL);
-			    PQclear(res);				
+						//nao precisa de case 6, pois se for 6 ja sai do laco e volta ao menu anterior 
+					}
+					if(opBusca < 4)	// se não for busca por dificuldade entao coloca-se as aspas simples '' 
+					{
+						setbuf(stdin,NULL);
+						gets(varBusca);					
+						strcat(queryBusca, varBusca);
+						if(opBusca == 1)
+							strcat(queryBusca, "%'");
+						else	
+							strcat(queryBusca, "'");
+					}
+					system("cls");
+					// parte de busca abaixo, vai funcionar de acordo com o que o usuario escolheu 
+					res = PQexec(conn,queryBusca);
+					switch (PQresultStatus(res)) 
+					{
+						case PGRES_COMMAND_OK: printf("ok\n"); break;
+						case PGRES_EMPTY_QUERY: printf("empty"); break;
+						case PGRES_TUPLES_OK: 
+							nFields = PQnfields(res);
+							
+							switch(opBusca)
+							{
+								case 4: printf(CIANO"\t%d Questões com dificuldade %d\n\n"CINZA,PQntuples(res),varBusca[0]); break;
+								case 5: printf(CIANO"\t%d questões no banco de dados\n\n",PQntuples(res)); break;
+								default: printf(CIANO"\t%d Questões encontradas com '%s'\n\n"CINZA,PQntuples(res),varBusca);
+							}
+						    for (i = 0; i < PQntuples(res); i++)
+						    {
+						    	// barra de separacao que mostra tbm o id_questao
+						    	printf(CIANO"\t=========== Questão %s ===========\n\n"CINZA,PQgetvalue(res, i, 0)); 
+						    	
+						        printf(AMARELO"\tEnunciado:\n\t"CINZA);
+						        printf("%s",PQgetvalue(res, i, 1));
+						        
+						        printf(AMARELO "\n\tResposta:\n\t" CINZA);
+						        printf("%s",PQgetvalue(res, i, 2));
+						        
+						        printf(AMARELO "\n\tDomínio:\n\t" CINZA);
+						        printf("%s",PQgetvalue(res, i, 3));
+						        
+						        printf(AMARELO"\n\tTema:\n\t"CINZA);
+						        printf("%s",PQgetvalue(res, i, 4));
+						        
+						        printf(AMARELO"\n\tDificuldade: "CINZA);
+						        printf("%s\n\n",PQgetvalue(res, i, 5));
+						    }	
+							break;
+						case PGRES_BAD_RESPONSE: printf("error: bad response"); break;
+						case PGRES_NONFATAL_ERROR: 
+						case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
+						default: printf("Algo inesperado");
+					}
+					printf(CIANO"\t");
+					system("pause");		
+					printf(CINZA);	
+				    PQclear(res);				
+				}while(opBusca != 6);
 				break;
 			case 3:
-				PQexec(conn, "DELETE FROM QUESTION");	
+				printf("\n\tQuer mesmo apagar todos os registros? (S/N): ");
+				do
+				{
+					varBusca[0] = getch();    // aproveitamento de variaveis 					
+					if(varBusca[0] == 'S' || varBusca[0] == 's')
+					{
+						PQexec(conn, "DELETE FROM QUESTION");	
+						PQexec(conn, "DELETE FROM THEME");
+						PQexec(conn, "DELETE FROM DOMAIN");							
+					}		
+				}while(varBusca[0] != 'S' && varBusca[0] != 'N' && varBusca[0] != 's' && varBusca[0] != 'n');
+				
 				break;
 			case 4:
 				system("cls");
@@ -146,20 +183,21 @@ void menuPrincipal(unsigned char op)
 	printf(CIANO"\t========= SISTEMA DE QUESTÕES ========="CINZA);
 	printf("%s",(op == 1) ? PRETO FUNDOBRANCO "\n\n\t Cadastrar Questões "CINZA FUNDOPRETO" <==" : "\n\n\t Cadastrar Questões");
 	printf("%s",(op == 2) ? PRETO FUNDOBRANCO "\n\n\t Buscar Questões "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar Questões");
-	printf("%s",(op == 3) ? PRETO FUNDOBRANCO "\n\n\t Apagar Registros "CINZA FUNDOPRETO" <==" : "\n\n\t Apagar Registros");
+	printf("%s",(op == 3) ? PRETO FUNDOBRANCO "\n\n\t Apagar Todos os Registros "CINZA FUNDOPRETO" <==" : "\n\n\t Apagar Todos os Registros");
 	printf("%s",(op == 4) ? PRETO FUNDOBRANCO "\n\n\t Sair "CINZA FUNDOPRETO " <==\n\n" : "\n\n\t Sair\n\n");
 	printf(CIANO"\t=======================================\n"CINZA);
 }
 // funcao que mostra as opcoes do menu de busca
 void menuBusca(unsigned char op)
 {
-	printf(CIANO"\t========= BUSCA DE QUESTÕES ========="CINZA);
+	printf(CIANO"\t=========== BUSCA DE QUESTÕES ==========="CINZA);
 	printf("%s",(op == 1) ? PRETO FUNDOBRANCO"\n\n\t Buscar por palavra "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar por palavra");
 	printf("%s",(op == 2) ? PRETO FUNDOBRANCO"\n\n\t Buscar por tema "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar por tema");
 	printf("%s",(op == 3) ? PRETO FUNDOBRANCO"\n\n\t Buscar por domínio "CINZA FUNDOPRETO " <==" : "\n\n\t Buscar por domínio");
 	printf("%s",(op == 4) ? PRETO FUNDOBRANCO"\n\n\t Buscar por dificuldade "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar por dificuldade");
-	printf("%s",(op == 5) ? PRETO FUNDOBRANCO"\n\n\t Voltar "CINZA FUNDOPRETO" <==" : "\n\n\t Voltar");
- 	printf(CIANO"\n\n\t=======================================\n"CINZA);
+	printf("%s",(op == 5) ? PRETO FUNDOBRANCO"\n\n\t Mostrar todas as questões "CINZA FUNDOPRETO" <==" : "\n\n\t Mostrar todas as questões");
+	printf("%s",(op == 6) ? PRETO FUNDOBRANCO"\n\n\t Voltar "CINZA FUNDOPRETO" <==" : "\n\n\t Voltar");
+ 	printf(CIANO"\n\n\t========================================\n"CINZA);
 }
 
 // funcao que faz o controle do menu com as setas 
@@ -179,7 +217,7 @@ unsigned char menu(char* menu)
 		else
 		{
 			menuBusca(op);
-			limite = 5;
+			limite = 6;
 		}
 		while(1)
 			if(kbhit())
@@ -195,7 +233,7 @@ unsigned char menu(char* menu)
 						if(op > 1)
 							op--;					
 						break;	
-					case 'W':
+					case 'W':			// aceita CAPS LOCK tambem 
 						if(op > 1)
 							op--;					
 						break;	
@@ -207,7 +245,7 @@ unsigned char menu(char* menu)
 						if(op < limite)
 							op++;	
 						break;	
-					case 'S':
+					case 'S':			// aceita CAPS LOCK tambem 
 						if(op < limite)
 							op++;			
 				}
