@@ -3,8 +3,8 @@
 #include <locale.h>
 #include <windows.h>
 #include <stdlib.h>
-#include "colors.h"
 #include <string.h>
+#include "colors.h"
 #include "D:\Documentos\libpq\include\pgsql\libpq-fe.h"
 
 struct questao
@@ -17,9 +17,10 @@ struct questao
 	int id;
 }questoes;
 
-void gotoxy(int x, int y);
 unsigned char menu(char menu[40]);
+void gotoxy(int x, int y);			
 void menuBusca(unsigned char op);
+void menuTemaDominio(unsigned char op);
 void menuPrincipal(unsigned char op);
 void cadastrarQuestao(PGconn *conn);
 void cadastrarDominio(PGconn *conn);
@@ -36,7 +37,7 @@ int main()
 	PGconn *conn;
 	PGresult *res;
 	int nFields;
-    int i, j;
+    int i;
 	
 	/* Faz conexao com o banco */
     conn = PQconnectdb(conninfo);
@@ -52,7 +53,7 @@ int main()
 	system("color 0F");
 	char varBusca[100];		// variavel a ser usada nas consultas para guardar a palavra, tema, ou seja la o que for
 	char queryBusca[400];	// string para busca ira guardar o SELECT FROM BLABLABLA...
-	unsigned char op, opBusca;
+	unsigned char op;
 	do
 	{
 		op = menu("principal");	 		// apresenta o menu principal e permite a escolha do usuario  
@@ -62,15 +63,18 @@ int main()
 				telaCadastro(conn);	           // mostrar a tela de cadastro 
 				break;
 			case 2:
-				do
+				while(1)
 				{
 					// Variavel controladora do switch de busca, (opBusca  ---> opcao do menu busca 
 					system("cls");
-					opBusca = menu("busca");	// apresenta o menu de busca, e permite a escolha do usuario   
-					if(opBusca == 6)	// se a opcao for 6 ja sai do switch e volta ao menu anterior 
+					op = menu("busca");	// apresenta o menu de busca, e permite a escolha do usuario   
+					if(op == 6)	// se a opcao for 6 ja sai do switch e volta ao menu anterior 
+					{
+						op = 1;
 						break;
+					}
 					system("cls");
-					switch(opBusca)
+					switch(op)
 					{
 						case 1:
 							printf("\tDigite a palavra a ser buscada: ");
@@ -97,12 +101,12 @@ int main()
 						
 						//nao precisa de case 6, pois se for 6 ja sai do laco e volta ao menu anterior 
 					}
-					if(opBusca < 4)	// se não for busca por dificuldade entao coloca-se as aspas simples '' 
+					if(op < 4)	// se não for busca por dificuldade entao coloca-se as aspas simples '' 
 					{
 						setbuf(stdin,NULL);
 						gets(varBusca);					
 						strcat(queryBusca, varBusca);
-						if(opBusca == 1)
+						if(op == 1)
 							strcat(queryBusca, "%'");
 						else	
 							strcat(queryBusca, "'");
@@ -117,7 +121,7 @@ int main()
 						case PGRES_TUPLES_OK: 
 							nFields = PQnfields(res);
 							
-							switch(opBusca)
+							switch(op)
 							{
 								case 4: printf(CIANO"\t%d Questões com dificuldade %d\n\n"CINZA,PQntuples(res),varBusca[0]); break;
 								case 5: printf(CIANO"\t%d questões no banco de dados\n\n",PQntuples(res)); break;
@@ -153,9 +157,60 @@ int main()
 					system("pause");		
 					printf(CINZA);	
 				    PQclear(res);				
-				}while(opBusca != 6);
+				}
 				break;
 			case 3:
+				while(1)
+				{
+					system("cls");
+					op = menu("TemaDominio");	// apresenta o menu de busca, e permite a escolha do usuario   
+					if(op == 4)	// se a opcao for 6 ja sai do switch e volta ao menu anterior 
+					{
+						op = 1;
+						break;
+					}
+					system("cls");
+					switch(op)
+					{
+						case 1:	strcpy(queryBusca, "SELECT * FROM DOMAIN"); break;
+						case 2: strcpy(queryBusca, "SELECT * FROM THEME"); break;
+						case 3: 
+							strcpy(queryBusca, "SELECT tema FROM THEME WHERE dominio = '");
+							setbuf(stdin,NULL);
+							printf("\tInsira o domínio a ser acessado: ");
+							gets(varBusca);
+							strcat(queryBusca,varBusca);
+							strcat(queryBusca,"'");
+							break;		
+					}
+					system("cls");
+					res = PQexec(conn,queryBusca);
+					switch (PQresultStatus(res)) 
+					{
+						case PGRES_COMMAND_OK: printf("ok\n"); break;
+						case PGRES_EMPTY_QUERY: printf("empty"); break;
+						case PGRES_TUPLES_OK: 
+							nFields = PQnfields(res);
+							switch(op)
+							{
+								case 1: printf(CIANO"\t%d Domínios cadastrados\n\n"CINZA,PQntuples(res)); break;
+								case 2: printf(CIANO"\t%d Temas cadastrados\n\n"CINZA,PQntuples(res)); break;
+								case 3: printf(CIANO"\t%d Temas no domínio '%s'\n\n"CINZA,PQntuples(res),varBusca);
+							}
+						    for (i = 0; i < PQntuples(res); i++)
+						        printf("\t%s\n",PQgetvalue(res, i, 0)); 
+							printf("\n\t"CIANO);  
+						    system("pause");    
+						    printf(CINZA);
+							break;
+						case PGRES_BAD_RESPONSE: printf("error: bad response"); break;
+						case PGRES_NONFATAL_ERROR: 
+						case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
+						default: printf("Algo inesperado");
+					}
+				}
+				break;	
+			case 4:
 				printf("\n\tQuer mesmo apagar todos os registros? (S/N): ");
 				do
 				{
@@ -169,11 +224,11 @@ int main()
 				}while(varBusca[0] != 'S' && varBusca[0] != 'N' && varBusca[0] != 's' && varBusca[0] != 'n');
 				
 				break;
-			case 4:
+			case 5:
 				system("cls");
 				printf("Programa finalizado");			
 		}
-	}while(op != 4);
+	}while(op != 5);
 	return 0;
 }
 
@@ -183,8 +238,9 @@ void menuPrincipal(unsigned char op)
 	printf(CIANO"\t========= SISTEMA DE QUESTÕES ========="CINZA);
 	printf("%s",(op == 1) ? PRETO FUNDOBRANCO "\n\n\t Cadastrar Questões "CINZA FUNDOPRETO" <==" : "\n\n\t Cadastrar Questões");
 	printf("%s",(op == 2) ? PRETO FUNDOBRANCO "\n\n\t Buscar Questões "CINZA FUNDOPRETO" <==" : "\n\n\t Buscar Questões");
-	printf("%s",(op == 3) ? PRETO FUNDOBRANCO "\n\n\t Apagar Todos os Registros "CINZA FUNDOPRETO" <==" : "\n\n\t Apagar Todos os Registros");
-	printf("%s",(op == 4) ? PRETO FUNDOBRANCO "\n\n\t Sair "CINZA FUNDOPRETO " <==\n\n" : "\n\n\t Sair\n\n");
+	printf("%s",(op == 3) ? PRETO FUNDOBRANCO "\n\n\t Domínios e Temas "CINZA FUNDOPRETO" <==" : "\n\n\t Domínios e Temas");
+	printf("%s",(op == 4) ? PRETO FUNDOBRANCO "\n\n\t Apagar Todos os Registros "CINZA FUNDOPRETO" <==" : "\n\n\t Apagar Todos os Registros");
+	printf("%s",(op == 5) ? PRETO FUNDOBRANCO "\n\n\t Sair "CINZA FUNDOPRETO " <==\n\n" : "\n\n\t Sair\n\n");
 	printf(CIANO"\t=======================================\n"CINZA);
 }
 // funcao que mostra as opcoes do menu de busca
@@ -200,6 +256,17 @@ void menuBusca(unsigned char op)
  	printf(CIANO"\n\n\t========================================\n"CINZA);
 }
 
+// funcao que mostra as opcoes do menu de dominio
+void menuTemaDominio(unsigned char op)
+{
+	printf(CIANO"\t=========== DOMÍNIOS E TEMAS =========="CINZA);
+	printf("%s",(op == 1) ? PRETO FUNDOBRANCO "\n\n\t Listar todos os domínios "CINZA FUNDOPRETO" <==" : "\n\n\t Listar todos os domínios");
+	printf("%s",(op == 2) ? PRETO FUNDOBRANCO "\n\n\t Listar todos os temas "CINZA FUNDOPRETO" <==" : "\n\n\t Listar todos os temas");
+	printf("%s",(op == 3) ? PRETO FUNDOBRANCO "\n\n\t Listar temas de um dominio "CINZA FUNDOPRETO" <==" : "\n\n\t Listar temas de um dominio");
+	printf("%s",(op == 4) ? PRETO FUNDOBRANCO "\n\n\t Voltar "CINZA FUNDOPRETO " <==\n\n" : "\n\n\t Voltar\n\n");
+	printf(CIANO"\t=======================================\n"CINZA);
+}
+
 // funcao que faz o controle do menu com as setas 
 unsigned char menu(char* menu)
 {
@@ -212,12 +279,17 @@ unsigned char menu(char* menu)
 		if(strcmp("principal",menu) == 0)
 		{
 			menuPrincipal(op);
-			limite = 4;
+			limite = 5;
 		}
-		else
+		else if(strcmp("busca",menu) == 0)
 		{
 			menuBusca(op);
 			limite = 6;
+		}
+		else	// menu TemaDominio
+		{
+			menuTemaDominio(op);
+			limite = 4;
 		}
 		while(1)
 			if(kbhit())
@@ -286,7 +358,7 @@ void telaCadastro(PGconn *conn)
 void cadastrarTema(PGconn *conn)
 {
 	char query[500];
-	sprintf(query, "INSERT INTO THEME VALUES('%s');",questoes.tema);
+	sprintf(query, "INSERT INTO THEME VALUES('%s','%s');",questoes.tema,questoes.dominio);
 	PGresult *res = PQexec(conn, query);
 	/* handle the response */	
 	switch (PQresultStatus(res)) 
@@ -358,4 +430,3 @@ static void exit_nicely(PGconn *conn)
     system("pause");
     exit(1);
 }
-
