@@ -176,7 +176,7 @@ int main()
 						case 1:	strcpy(queryBusca, "SELECT * FROM DOMINIO"); break;
 						case 2: strcpy(queryBusca, "SELECT * FROM TEMA"); break;
 						case 3: 
-							strcpy(queryBusca, "SELECT tema FROM TEMA WHERE  = '");
+							strcpy(queryBusca, "SELECT nome_tema FROM TEMA WHERE dominio = '");
 							setbuf(stdin,NULL);
 							printf("\tInsira o domínio a ser acessado: ");
 							gets(varBusca);
@@ -200,15 +200,16 @@ int main()
 							}
 						    for (i = 0; i < PQntuples(res); i++)
 						        printf("\t%s\n",PQgetvalue(res, i, 0)); 
-							printf("\n\t"CIANO);  
-						    system("pause");    
-						    printf(CINZA);
 							break;
 						case PGRES_BAD_RESPONSE: printf("error: bad response"); break;
 						case PGRES_NONFATAL_ERROR: 
 						case PGRES_FATAL_ERROR: printf(PQresultErrorMessage(res)); break;
 						default: printf("Algo inesperado");
 					}
+					printf("\n\t"CIANO);  						      
+				    setbuf(stdin,NULL);
+				    system("pause");
+				    printf(CINZA);
 				}
 				break;	
 			case 4:
