@@ -27,6 +27,7 @@ void cadastrarDominio(PGconn *conn);
 void cadastrarTema(PGconn *conn);
 void mostrarOpcoes(unsigned char op);
 void telaCadastro(PGconn *conn);
+void inputDificuldade(char * string);
 
 static void exit_nicely(PGconn *conn);
 
@@ -78,15 +79,15 @@ int main()
 					{
 						case 1:
 							printf("\tDigite a palavra a ser buscada: ");
-							strcpy(queryBusca,"SELECT * FROM QUESTION WHERE texto LIKE '%");
+							strcpy(queryBusca,"SELECT * FROM QUESTAO WHERE texto LIKE '%");
 							break;
 						case 2:
 							printf("\tDigite o tema a ser buscado: ");
-							strcpy(queryBusca,"SELECT * FROM QUESTION WHERE tema = '");
+							strcpy(queryBusca,"SELECT * FROM QUESTAO WHERE tema = '");
 							break;
 						case 3:
 							printf("\tDigite o dominio a ser buscado: ");
-							strcpy(queryBusca,"SELECT * FROM QUESTION WHERE dominio = '");
+							strcpy(queryBusca,"SELECT * FROM QUESTAO WHERE dominio = '");
 							break;
 						case 4:
 							printf("\tDigite a dificuldade a ser buscada: ");
@@ -94,10 +95,10 @@ int main()
 							// pra nao criar outra variavel usei a posicao 0 do vetor varBusca
 							// lembre-se que o tipo char tambem suporta numeros inteiros 
 							scanf("%d",&varBusca[0]);							
-							sprintf(queryBusca,"SELECT * FROM QUESTION WHERE dificuldade = %d",varBusca[0]);
+							sprintf(queryBusca,"SELECT * FROM QUESTAO WHERE dificuldade = %d",varBusca[0]);
 							break;
 						case 5:
-							strcpy(queryBusca,"SELECT * FROM QUESTION");
+							strcpy(queryBusca,"SELECT * FROM QUESTAO");
 						
 						//nao precisa de case 6, pois se for 6 ja sai do laco e volta ao menu anterior 
 					}
@@ -172,10 +173,10 @@ int main()
 					system("cls");
 					switch(op)
 					{
-						case 1:	strcpy(queryBusca, "SELECT * FROM DOMAIN"); break;
-						case 2: strcpy(queryBusca, "SELECT * FROM THEME"); break;
+						case 1:	strcpy(queryBusca, "SELECT * FROM DOMINIO"); break;
+						case 2: strcpy(queryBusca, "SELECT * FROM TEMA"); break;
 						case 3: 
-							strcpy(queryBusca, "SELECT tema FROM THEME WHERE dominio = '");
+							strcpy(queryBusca, "SELECT tema FROM TEMA WHERE  = '");
 							setbuf(stdin,NULL);
 							printf("\tInsira o domínio a ser acessado: ");
 							gets(varBusca);
@@ -217,9 +218,9 @@ int main()
 					varBusca[0] = getch();    // aproveitamento de variaveis 					
 					if(varBusca[0] == 'S' || varBusca[0] == 's')
 					{
-						PQexec(conn, "DELETE FROM QUESTION");	
-						PQexec(conn, "DELETE FROM THEME");
-						PQexec(conn, "DELETE FROM DOMAIN");							
+						PQexec(conn, "DELETE FROM QUESTAO");	
+						PQexec(conn, "DELETE FROM TEMA");
+						PQexec(conn, "DELETE FROM DOMINIO");							
 					}		
 				}while(varBusca[0] != 'S' && varBusca[0] != 'N' && varBusca[0] != 's' && varBusca[0] != 'n');
 				
@@ -344,8 +345,7 @@ void telaCadastro(PGconn *conn)
 	gets(questoes.dominio);
 	printf(AMARELO"\n\tInsira o tema da questão:\n\n\t"CINZA);
 	gets(questoes.tema);
-	printf(AMARELO"\n\tInsira a dificuldade da questão:\n\n\t"CINZA);
-	scanf("%d",&questoes.dificulade);
+	inputDificuldade(AMARELO"\n\tInsira a dificuldade da questão (de 1 a 3):\n\n\t"CINZA);
 	cadastrarDominio(conn);
 	cadastrarTema(conn);
 	cadastrarQuestao(conn);
@@ -358,7 +358,7 @@ void telaCadastro(PGconn *conn)
 void cadastrarTema(PGconn *conn)
 {
 	char query[500];
-	sprintf(query, "INSERT INTO THEME VALUES('%s','%s');",questoes.tema,questoes.dominio);
+	sprintf(query, "INSERT INTO TEMA VALUES('%s','%s');",questoes.tema,questoes.dominio);
 	PGresult *res = PQexec(conn, query);
 	/* handle the response */	
 	switch (PQresultStatus(res)) 
@@ -379,7 +379,7 @@ void cadastrarTema(PGconn *conn)
 void cadastrarDominio(PGconn *conn)
 {
 	char query[500];
-	sprintf(query, "INSERT INTO DOMAIN VALUES('%s');",questoes.dominio);
+	sprintf(query, "INSERT INTO DOMINIO VALUES('%s');",questoes.dominio);
 	PGresult *res = PQexec(conn, query);
 	/* handle the response */	
 	switch (PQresultStatus(res)) 
@@ -401,7 +401,7 @@ void cadastrarQuestao(PGconn *conn)
 { 
 	char query[500];
 	
-	sprintf(query,"INSERT INTO QUESTION VALUES(DEFAULT,'%s','%s','%s','%s',%d);",
+	sprintf(query,"INSERT INTO QUESTAO VALUES(DEFAULT,'%s','%s','%s','%s',%d);",
 	questoes.texto, questoes.resposta, questoes.dominio, questoes.tema, questoes.dificulade);
 	PGresult *res = PQexec(conn, query);
 		/* handle the response */
@@ -429,4 +429,24 @@ static void exit_nicely(PGconn *conn)
     PQfinish(conn);
     system("pause");
     exit(1);
+}
+
+void inputDificuldade(char * string)
+{
+	do
+	{
+		setbuf(stdin,NULL);
+		printf("%s",string);
+		scanf("%d",&questoes.dificulade);
+		gotoxy(8,23);
+		printf("                                                      ");
+		if(!(questoes.dificulade >= 1 && questoes.dificulade <= 3))
+		{
+			gotoxy(2,21);
+			printf("                                                  ");
+			gotoxy(9,23);
+			printf("Entrada invalida!!");
+			gotoxy(8,18);
+		}
+	}while(!(questoes.dificulade >= 1 && questoes.dificulade <= 3));
 }
