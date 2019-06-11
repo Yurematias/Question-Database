@@ -1,16 +1,18 @@
-CREATE TABLE Domain
+CREATE TABLE DOMINIO
 (
+	nome_dominio varchar(100),
+	primary key(nome_dominio)
+);
+
+CREATE TABLE TEMA
+(
+	nome_tema varchar(100),
 	dominio varchar(100),
-	primary key(dominio)
+	primary key(nome_tema),
+	foreign key(dominio) REFERENCES DOMINIO(nome_dominio)
 );
 
-CREATE TABLE Theme
-(
-	tema varchar(100),
-	primary key(tema)
-);
-
-CREATE TABLE Question
+CREATE TABLE QUESTAO
 (
 	id_questao SERIAL NOT NULL,
 	texto varchar(300),
@@ -20,7 +22,8 @@ CREATE TABLE Question
 	dificuldade integer,
 	
 	primary key(id_questao),
-	foreign key(dominio) REFERENCES Domain(Dominio),
-	foreign key(tema) REFERENCES Theme(tema)
+	foreign key(dominio) REFERENCES DOMINIO(nome_dominio),
+	foreign key(tema) REFERENCES Tema(nome_tema)
 )
 
+SELECT * FROM TEMA WHERE DOMINIO = 'Fisica'
