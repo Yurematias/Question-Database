@@ -125,7 +125,7 @@ int main()
 							switch(op)
 							{
 								case 4: printf(CIANO"\t%d Questões com dificuldade %d\n\n"CINZA,PQntuples(res),varBusca[0]); break;
-								case 5: printf(CIANO"\t%d questões no banco de dados\n\n",PQntuples(res)); break;
+								case 5: printf(CIANO"\t%d Questões no banco de dados\n\n",PQntuples(res)); break;
 								default: printf(CIANO"\t%d Questões encontradas com '%s'\n\n"CINZA,PQntuples(res),varBusca);
 							}
 						    for (i = 0; i < PQntuples(res); i++)
@@ -409,7 +409,7 @@ void cadastrarQuestao(PGconn *conn)
 	switch (PQresultStatus(res)) 
 	{
 		case PGRES_EMPTY_QUERY: 
-		case PGRES_COMMAND_OK: printf(CIANO"\n\n\tCadastro realizado com sucesso...\n"CINZA); break;
+		case PGRES_COMMAND_OK: printf(CIANO"\n\tCadastro realizado com sucesso...\n"CINZA); break;
 		case PGRES_TUPLES_OK:  break;
 		case PGRES_BAD_RESPONSE: printf(VERMELHO"\t[ERROR] Bad Response\n"CINZA); system("pause"); break;
 		case PGRES_NONFATAL_ERROR: 
